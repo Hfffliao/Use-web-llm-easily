@@ -1,0 +1,29 @@
+graph TD
+    A[开始] --> B[等待用户点击提取按钮]
+    B --> C[获取当前活动标签页: chrome.tabs.query]
+    C --> D[向目标标签页注入脚本: chrome.scripting.executeScript]
+    D --> E[执行提取函数: extractSpecificChat]
+    E --> F[获取页面中用户提问节点: querySelectorAll]
+    F --> G[获取页面中大模型回答节点: querySelectorAll]
+    G --> H[合并提问与回答节点数组]
+    H --> I[按DOM位置排序: compareDocumentPosition]
+    I --> J[遍历排序后的节点]
+    J --> K{节点是否为回答且带有思考特征?}
+    K -- 是 --> L[跳过该节点]
+    L --> J
+    K -- 否 --> M[提取节点纯文本: innerText]
+    M --> N{是否为提问节点?}
+    N -- 是 --> O[添加前缀: 'liaoyi提问：']
+    N -- 否 --> P[添加前缀: 'ailinyi回答：']
+    O --> Q[拼接文本与分隔符]
+    P --> Q
+    Q --> R{是否遍历完成?}
+    R -- 否 --> J
+    R -- 是 --> S{提取结果是否为空?}
+    S -- 是 --> T[使用当前页面选中内容作为兜底: window.getSelection]
+    S -- 否 --> U[返回最终文本]
+    T --> U
+    U --> V[将提取结果存入本地缓存: chrome.storage.local.set]
+    V --> W[创建新标签页打开编辑器: chrome.tabs.create]
+    W --> X[关闭当前弹出窗口: window.close]
+    X --> Y[结束]
