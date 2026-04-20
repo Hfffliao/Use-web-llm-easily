@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>代码逻辑流程图</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Noto+Sans+SC:wght@300;500;700;900&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<style>
+  :root {
+    --bg: #0a0e17;
+    --bg2: #111827;
+    --fg: #e8ecf4;
+    --muted: #6b7a99;
+    --accent: #00e89d;
+    --accent2: #00b8ff;
+    --card: #161e2e;
+    --border: #1f2b42;
+    --glow: rgba(0, 232, 157, 0.15);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: 'Noto Sans SC', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* 背景装饰 */
+  body::before {
+    content: '';
+    position: fixed;
+    top: -30%; left: -10%;
+    width: 60vw; height: 60vw;
+    background: radial-gradient(circle, rgba(0,232,157,0.06) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+  body::after {
+    content: '';
+    position: fixed;
+    bottom: -20%; right: -10%;
+    width: 50vw; height: 50vw;
+    background: radial-gradient(circle, rgba(0,184,255,0.05) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* 网格纹理 */
+  .grid-bg {
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
+    background-size: 60px 60px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  header {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+    padding: 60px 20px 30px;
+  }
+
+  header .tag {
+    display: inline-block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--accent);
+    background: rgba(0,232,157,0.08);
+    border: 1px solid rgba(0,232,157,0.2);
+    padding: 4px 14px;
+    border-radius: 20px;
+    letter-spacing: 1px;
+    margin-bottom: 20px;
+  }
+
+  header h1 {
+    font-size: clamp(32px, 5vw, 52px);
+    font-weight: 900;
+    line-height: 1.15;
+    letter-spacing: -1px;
+    background: linear-gradient(135deg, var(--fg) 30%, var(--accent) 70%, var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  header p {
+    margin-top: 14px;
+    color: var(--muted);
+    font-size: 15px;
+    font-weight: 300;
+  }
+
+  main {
+    position: relative;
+    z-index: 1;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 20px 24px 80px;
+  }
+
+  /* 流程图卡片 */
+  .diagram-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 40px 28px;
+    margin-bottom: 40px;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.3s;
+  }
+  .diagram-card:hover {
+    border-color: rgba(0,232,157,0.3);
+  }
+  .diagram-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--accent), var(--accent2), transparent);
+    opacity: 0.6;
+  }
+
+  .card-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 28px;
+  }
+  .card-header .icon {
+    width: 36px; height: 36px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+  .card-header .icon.green { background: rgba(0,232,157,0.12); }
+  .card-header .icon.blue { background: rgba(0,184,255,0.12); }
+  .card-header .icon.orange { background: rgba(255,160,40,0.12); }
+  .card-header h2 {
+    font-size: 20px;
+    font-weight: 700;
+  }
+  .card-header .sub {
+    color: var(--muted);
+    font-size: 13px;
+    margin-left: auto;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  /* Mermaid 样式覆盖 */
+  .mermaid {
+    display: flex;
+    justify-content: center;
+  }
+  .mermaid svg {
+    max-width: 100%;
+    height: auto;
+  }
+
+  /* 入场动画 */
+  .diagram-card {
+    opacity: 0;
+    transform: translateY(30px);
+    animation: fadeUp 0.7s ease forwards;
+  }
+  .diagram-card:nth-child(1) { animation-delay: 0.1s; }
+  .diagram-card:nth-child(2) { animation-delay: 0.3s; }
+  .diagram-card:nth-child(3) { animation-delay: 0.5s; }
+
+  @keyframes fadeUp {
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* 浮动粒子 */
+  .particle {
+    position: fixed;
+    width: 3px; height: 3px;
+    border-radius: 50%;
+    background: var(--accent);
+    opacity: 0;
+    pointer-events: none;
+    z-index: 0;
+    animation: float linear infinite;
+  }
+
+  @keyframes float {
+    0% { opacity: 0; transform: translateY(100vh) scale(0); }
+    10% { opacity: 0.6; }
+    90% { opacity: 0.3; }
+    100% { opacity: 0; transform: translateY(-10vh) scale(1); }
+  }
+
+  /* 代码片段标签 */
+  .code-hint {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    margin-top: 16px;
+  }
+
+  @media (max-width: 640px) {
+    .diagram-card { padding: 24px 14px; }
+    header { padding: 40px 16px 20px; }
+    .card-header .sub { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="grid-bg"></div>
+
+<header>
+  <div class="tag">CHROME EXTENSION / POPUP.JS</div>
+  <h1>代码逻辑流程图</h1>
+  <p>基于 Mermaid 的三大核心模块可视化 — 初始化 · 解析渲染 · 事件驱动</p>
+</header>
+
+<main>
+
+  <!-- 图1：初始化流程 -->
+  <div class="diagram-card">
+    <div class="card-header">
+      <div class="icon green">🚀</div>
+      <h2>初始化流程</h2>
+      <span class="sub">4.1 章节</span>
+    </div>
+    <div class="mermaid">
+flowchart TD
+    A(["页面加载"]) --> B["chrome.storage.local.get<br/>读取 'editorText'"]
+    B --> C{"data.editorText<br/>是否存在?"}
+    C -- "是" --> D["buildEditorAndTOC<br/>解析文本并渲染"]
+    D --> E["chrome.storage.local.remove<br/>清除已读数据"]
+    C -- "否" --> F["updateCharCount<br/>初始化字数为 0"]
+    E --> G(["就绪"])
+    F --> G
+
+    style A fill:#0d2137,stroke:#00b8ff,stroke-width:2px,color:#e8ecf4
+    style G fill:#0d2137,stroke:#00e89d,stroke-width:2px,color:#e8ecf4
+    style C fill:#1a1510,stroke:#ffb900,stroke-width:2px,color:#ffb900
+    style D fill:#0d2618,stroke:#00e89d,stroke-width:1px,color:#e8ecf4
+    style F fill:#0d2618,stroke:#00e89d,stroke-width:1px,color:#e8ecf4
+    style B fill:#161e2e,stroke:#1f2b42,stroke-width:1px,color:#e8ecf4
+    style E fill:#161e2e,stroke:#1f2b42,stroke-width:1px,color:#e8ecf4
+    </div>
+    <div class="code-hint">chrome.storage.local.get("editorText", callback)</div>
+  </div>
+
+  <!-- 图2：buildEditorAndTOC 解析渲染 -->
+  <div class="diagram-card">
+    <div class="card-header">
+      <div class="icon blue">⚙️</div>
+      <h2>文本解析与渲染</h2>
+      <span class="sub">3.0 buildEditorAndTOC</span>
+    </div>
+    <div class="mermaid">
+flowchart TD
+    START(["传入原始文本"]) --> SPLIT["text.split<br/>/(liaoyi|ailinyi)/<br/>分割并保留分隔符"]
+    SPLIT --> LOOP{"i &lt; segments.length?<br/>步长 +2"}
+    LOOP -- "否" --> RENDER["editor.innerHTML = editorHTML<br/>tocList.innerHTML = tocHTML"]
+    RENDER --> DONE(["调用 updateCharCount"])
+
+    LOOP -- "是" --> EXTRACT["keyword = segments[i]<br/>content = segments[i+1].trim()"]
+    EXTRACT --> CLEAN["content.replace<br/>清理 --- 分割线"]
+    CLEAN --> MERGE["fullContent = keyword + content<br/>重新粘合，不丢失关键词"]
+    MERGE --> EMPTY{"fullContent<br/>为空?"}
+    EMPTY -- "是" --> SKIP["continue 跳过"]
+    SKIP --> LOOP
+
+    EMPTY -- "否" --> TYPE{"判断类型"}
+    TYPE -- "含 liaoyi" --> U["type='user'<br/>label='👤 用户'"]
+    TYPE -- "含 ailinyi" --> AI["type='ai'<br/>label='🤖 AI'"]
+    TYPE -- "其他" --> O["type='other'<br/>label='📄 其他'"]
+
+    U --> SAFE
+    AI --> SAFE
+    O --> SAFE
+
+    SAFE["转义 HTML &lt; &gt;<br/>换行 → &lt;br&gt;"]
+    SAFE --> PREV["截取前40字作为目录预览"]
+    PREV --> APPEND["追加到 editorHTML / tocHTML"]
+    APPEND --> LOOP
+
+    style START fill:#0d2137,stroke:#00b8ff,stroke-width:2px,color:#e8ecf4
+    style DONE fill:#0d2137,stroke:#00e89d,stroke-width:2px,color:#e8ecf4
+    style LOOP fill:#1a1510,stroke:#ffb900,stroke-width:2px,color:#ffb900
+    style EMPTY fill:#1a1510,stroke:#ffb900,stroke-width:2px,color:#ffb900
+    style TYPE fill:#1a1510,stroke:#ffb900,stroke-width:2px,color:#ffb900
+    style SPLIT fill:#0d2618,stroke:#00e89d,stroke-width:1px,color:#e8ecf4
+    style CLEAN fill:#0d2618,stroke:#00e89d,stroke-width:1px,color:#e8ecf4
+    style MERGE fill:#14202e,stroke:#00b8ff,stroke-width:1.5px,color:#00b8ff
+    style SAFE fill:#0d2618,stroke:#00e89d,stroke-width:1px,color:#e8ecf4
+    style RENDER fill:#14202e,stroke:#00b8ff,stroke-width:1.5px,color:#e8ecf4
+    style EXTRACT fill:#161e2e,stroke:#1f2b42,stroke-width:1px,color:#e8ecf4
+    style PREV fill:#161e2e,stroke:#1f2b42,stroke-width:1px,color:#e8ecf4
+    style APPEND fill:#161e2e,stroke:#1f2b42,stroke-width:1px,color:#e8ecf4
+    style SKIP fill:#2a1515,stroke:#ff5555,stroke-width:1px,color:#ff5555
+    style U fill:#161e2e,stroke:#1f2b42,stroke-width:1px,color:#e8ecf4
+    style AI fill:#161e2e,stroke:#1f2b42,stroke-width:1px,color:#e8ecf4
+    style O fill:#161e2e,stroke:#1f2b42,stroke-width:1px,color:#e8ecf4
+    </div>
+    <div class="code-hint">text.split(/(liaoyi|ailinyi)/) · 步长 2 遍历 · fullContent = keyword + content</div>
+  </div>
+
+  <!-- 图3：事件驱动 -->
+  <div class="diagram-card">
+    <div class="card-header">
+      <div class="icon orange">⚡</div>
+      <h2>事件驱动矩阵</h2>
+      <span class="sub">4.2 ~ 4.6 章节</span>
+    </div>
+    <div class="mermaid">
+flowchart LR
+    subgraph E1["📝 input 事件"]
+        direction TB
+        T1["editor 触发输入"] --> T2["updateCharCount<br/>读取 innerText.length<br/>更新右上角字符数"]
+    end
+
+    subgraph E2["📑 目录点击"]
+        direction TB
+        C1["tocList click"] --> C2{"e.target<br/>是否为 &lt;a&gt;?"}
+        C2 -- "否" --> C3["忽略"]
+        C2 -- "是" --> C4["获取 data-target id"]
+        C4 --> C5["scrollIntoView<br/>smooth 平滑滚动"]
+    end
+
+    subgraph E3["⌨️ Enter 键"]
+        direction TB
+        K1["editor keydown"] --> K2{"key==='Enter'<br/>且 !shiftKey?"}
+        K2 -- "否" --> K3["默认行为"]
+        K2 -- "是" --> K4["preventDefault<br/>insertLineBreak"]
+    end
+
+    subgraph E4["📋 复制按钮"]
+        direction TB
+        Y1["copyBtn click"] --> Y2{"editor.innerText<br/>为空?"}
+        Y2 -- "是" --> Y3["return 退出"]
+        Y2 -- "否" --> Y4["clipboard.writeText"]
+        Y4 --> Y5["按钮变 '已复制!'<br/>背景变金黄 2秒"]
+        Y5 --> Y6["恢复原始状态"]
+    end
+
+    subgraph E5["🗑️ 清空按钮"]
+        direction TB
+        X1["clearBtn click"] --> X2["editor.innerHTML = ''"]
+        X2 --> X3["tocList.innerHTML = ''"]
+        X3 --> X4["updateCharCount → 0"]
+        X4 --> X5["editor.focus"]
+    end
+
+    style E1 fill:#0d2618,stroke:#00e89d,stroke-width:1px,color:#e8ecf4
+    style E2 fill:#0d1f2e,stroke:#00b8ff,stroke-width:1px,color:#e8ecf4
+    style E3 fill:#1a1510,stroke:#ffb900,stroke-width:1px,color:#e8ecf4
+    style E4 fill:#1e0d2e,stroke:#c084fc,stroke-width:1px,color:#e8ecf4
+    style E5 fill:#2a1515,stroke:#ff5555,stroke-width:1px,color:#e8ecf4
+    </div>
+    <div class="code-hint">5 个独立事件监听 · 互不耦合 · 各自处理交互逻辑</div>
+  </div>
+
+</main>
+
+<script>
+  // 初始化 Mermaid，使用深色主题
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: 'dark',
+    themeVariables: {
+      primaryColor: '#161e2e',
+      primaryBorderColor: '#1f2b42',
+      primaryTextColor: '#e8ecf4',
+      lineColor: '#3a4a6a',
+      secondaryColor: '#111827',
+      tertiaryColor: '#0a0e17',
+      fontFamily: '"Noto Sans SC", sans-serif',
+      fontSize: '13px',
+      nodeBorder: '#1f2b42',
+      clusterBkg: '#0d1117',
+      clusterBorder: '#1f2b42',
+    },
+    flowchart: {
+      curve: 'basis',
+      padding: 16,
+      nodeSpacing: 40,
+      rankSpacing: 50,
+      htmlLabels: true,
+      useMaxWidth: true,
+    }
+  });
+
+  // 创建浮动粒子 {
+    const count = 15;
+    for (let i = 0; i < count; i++) {
+      const p = document.createElement('div');
+      p.className = 'particle';
+      p.style.left = Math.random() * 100 + 'vw';
+      p.style.animationDuration = (8 + Math.random() * 14) + 's';
+      p.style.animationDelay = (Math.random() * 10) + 's';
+      p.style.width = p.style.height = (2 + Math.random() * 3) + 'px';
+      // 随机选色
+      const colors = ['#00e89d', '#00b8ff', '#ffb900', '#c084fc'];
+      p.style.background = colors[Math.floor(Math.random() * colors.length)];
+      document.body.appendChild(p);
+    }
+  })();
+</script>
+
+</body>
+</html>

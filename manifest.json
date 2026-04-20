@@ -1,0 +1,14 @@
+{
+ "manifest_version": 3,
+  "name": "AI对话提取编辑器",
+  "version": "1.0",
+  "description": "一键提取网页大模型对话到全屏文本框，方便修改",
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "storage"
+  ]
+}
