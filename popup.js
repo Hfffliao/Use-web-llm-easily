@@ -1,6 +1,52 @@
+let  UserName, AiName ;
+(async () => {
+    const userInfo = await initUserInfo();
+    UserName = userInfo.UserName;
+    AiName = userInfo.AiName;
+    
+    // 后续逻辑
+    console.log(`用户：${UserName}，AI：${AiName}`);
+})();
+// 封装获取用户信息的函数
+async function initUserInfo() {
+    const user = await chrome.storage.local.get("UserName");
+    const ai = await chrome.storage.local.get("AiName");
+    return {
+        UserName: user.UserName || '用户',
+        AiName: ai.AiName || '助手'
+    };
+}
 document.getElementById('extractBtn').addEventListener('click', async () => {
     console.log("点击按钮")
+     try {
+        console.log("popup加载，检查配置");
+        
 
+        // 检查值是否存在
+        if (!UserName || !AiName) {
+            console.log("未找到配置，显示表单");
+            // 显示表单
+            document.getElementById('configForm').style.display = 'block';
+            document.getElementById('extractContainer').style.display = 'none';
+            document.getElementById('userNameInput').focus();
+            
+        } else {
+            console.log("已获取到用户名和AI名称");
+            // 保持按钮可见
+            document.getElementById('extractBtn').style.display = 'block';
+            document.getElementById('configForm').style.display = 'none';
+            extractMsg();
+           
+            // 显示表单
+        }
+    } catch (error) {
+        console.error("配置检查出错:", error);
+        alert("配置检查失败，请重试");
+    }
+   
+});
+async function extractMsg(){
+     // 获取存储值
     let [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
     // 2. 获取该标签页的 URL（需要扩展拥有 "tabs" 权限）
     const currentUrl = tab.url;
@@ -29,7 +75,8 @@ document.getElementById('extractBtn').addEventListener('click', async () => {
 
     const results = await chrome.scripting.executeScript({
         target: { tabId: tab.id },
-        func: extractFunc
+        func: extractFunc,
+          args: [UserName, AiName]   // ✅ 关键：将用户名和 AI 名作为参数传入
     });
 
     const extractedText = results[0].result;
@@ -40,13 +87,35 @@ document.getElementById('extractBtn').addEventListener('click', async () => {
     // 打开全屏编辑器
     chrome.tabs.create({ url: chrome.runtime.getURL("editor.html") });
     window.close();
+}
+// 新增：处理表单提交
+document.getElementById('saveConfigBtn').addEventListener('click', async () => {
+    const newUserName = document.getElementById('userNameInput').value;
+    const newAiName = document.getElementById('aiNameInput').value;
+
+    if (newUserName && newAiName) {
+        // 保存到存储
+        await chrome.storage.local.set({
+            "UserName": newUserName,
+            "AiName": newAiName
+        });
+        console.log("用户名和AI名称已保存");
+        
+        // 隐藏表单并恢复按钮
+        document.getElementById('configForm').style.display = 'none';
+        document.getElementById('extractContainer').style.display = 'block';
+        
+        // 继续执行原有逻辑
+        await processExtraction();
+    } else {
+        alert("用户名和AI名称不能为空");
+    }
 });
 
 
 
-
 // 专为你当前网站定制的精准提取逻辑
-function extractSpecificChat_zhipu() {
+function extractSpecificChat_zhipu(UserName, AiName) {
     // 1. 精准抓取用户的提问
     const userMsgs = document.querySelectorAll('.pr.question-text-style');
     // 2. 精准抓取大模型的回复
@@ -85,10 +154,10 @@ function extractSpecificChat_zhipu() {
             let prefix = ""; // 默认不加前缀
 
             if (!isFirstNode) {
-                prefix = node.classList.contains('question-text-style') ? 'liaoyi提问：\n' : 'ailinyi回答：\n';
+                prefix = node.classList.contains('question-text-style') ? `${UserName}：\n` : `${AiName}：\n`;
             } else {
-                if (!text.startsWith('liaoyi')) {
-                    prefix = 'liaoyi提问：\n';
+                 if (!text.startsWith(UserName)) {
+                    prefix = `${UserName}：\n`;
                 }
             }
 
@@ -105,7 +174,7 @@ function extractSpecificChat_zhipu() {
     return finalText;
 }
 // 专为你当前网站定制的精准提取逻辑 —— 小米 MiMo Studio 示例版
-function extractSpecificChat_xiaomimimo() {
+function extractSpecificChat_xiaomimimo(UserName, AiName) {
     // 1. 精准抓取用户的提问
     const userMsgs = document.querySelectorAll('.bg-mimo-bg-message');
     console.log(userMsgs)
@@ -149,10 +218,10 @@ function extractSpecificChat_xiaomimimo() {
             let prefix = ""; // 默认不加前缀
 
             if (!isFirstNode) {
-                prefix = node.classList.contains('bg-mimo-bg-message') ? 'liaoyi提问：\n' : 'ailinyi回答：\n';
+                prefix = node.classList.contains('bg-mimo-bg-message') ? `${UserName}：\n` : `${AiName}：\n`;
             } else {
-                if (!text.startsWith('liaoyi')) {
-                    prefix = 'liaoyi提问：\n';
+                 if (!text.startsWith(UserName)) {
+                    prefix = `${UserName}：\n`;
                 }
             }
 
@@ -169,7 +238,7 @@ function extractSpecificChat_xiaomimimo() {
     return finalText;
 }
 // 专为deepseek网站定制的精准提取逻辑
-function extractSpecificChat_deepseek() {
+function extractSpecificChat_deepseek(UserName, AiName) {
     // 1. 精准抓取用户的提问
     const userMsgs = document.querySelectorAll('.fbb737a4');
     // console.log(userMsgs)
@@ -214,10 +283,10 @@ function extractSpecificChat_deepseek() {
             let prefix = ""; // 默认不加前缀
 
             if (!isFirstNode) {
-                prefix = node.classList.contains('fbb737a4') ? 'liaoyi提问：\n' : 'ailinyi回答：\n';
+                prefix = node.classList.contains('fbb737a4') ? `${UserName}：\n` : `${AiName}：\n`;
             } else {
-                if (!text.startsWith('liaoyi')) {
-                    prefix = 'liaoyi提问：\n';
+                 if (!text.startsWith(UserName)) {
+                    prefix = `${UserName}：\n`;
                 }
             }
 
@@ -235,7 +304,7 @@ function extractSpecificChat_deepseek() {
 }
 
 // 专为qianwen网站定制的精准提取逻辑
-function extractSpecificChat_qianwen() {
+function extractSpecificChat_qianwen(UserName, AiName) {
     // 1. 精准抓取用户的提问
     const userMsgs = document.querySelectorAll('.bubble-VIVxZ8');
     console.log(userMsgs)
@@ -275,17 +344,20 @@ function extractSpecificChat_qianwen() {
 
     allMessages.forEach(node => {
         let text = node.innerText.trim();
+        if(!text){
+            text = node.innerHTML.trim();
+        }
         if (text) {
             let prefix = ""; // 默认不加前缀
 
             if (!isFirstNode) {
-                prefix = node.classList.contains('bubble-VIVxZ8') ? 'liaoyi提问：\n' : 'ailinyi回答：\n';
+                prefix = node.classList.contains('bubble-VIVxZ8') ? `${UserName}：\n` : `${AiName}：\n`;
             } else {
-                if (!text.startsWith('liaoyi')) {
-                    prefix = 'liaoyi提问：\n';
+                if (!text.startsWith(UserName)) {
+                    prefix = `${UserName}：\n`;
                 }
             }
-
+            console.log('text:' + text);
             finalText += prefix + text + "\n\n-------------------\n\n";
             isFirstNode = false; // 第一个有效节点已处理
         }
@@ -295,6 +367,6 @@ function extractSpecificChat_qianwen() {
     if (finalText.trim() === "") {
         finalText = window.getSelection().toString();
     }
-    console.log('finalText:' + finalText);
+    // console.log('finalText:' + finalText);
     return finalText;
 }

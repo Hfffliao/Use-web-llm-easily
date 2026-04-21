@@ -1,3 +1,5 @@
+let  UserName, AiName ;//定义用户信息
+
 // ==========================================
 // 1. DOM 元素获取
 // ==========================================
@@ -6,11 +8,19 @@ const copyBtn = document.getElementById('copyBtn');
 const clearBtn = document.getElementById('clearBtn');
 const tocList = document.getElementById('tocList');
 const charCountEl = document.getElementById('charCount');
-
-// ==========================================
+//====================================
 // 2. 核心工具函数
 // ==========================================
 
+// 封装获取用户信息的函数
+async function initUserInfo() {
+    const user = await chrome.storage.local.get("UserName");
+    const ai = await chrome.storage.local.get("AiName");
+    return {
+        UserName: user.UserName || '用户',
+        AiName: ai.AiName || '助手'
+    };
+}
 /** 实时更新右上角的字符数量 */
 function updateCharCount() {
     const text = editor.innerText;
@@ -24,7 +34,7 @@ function updateCharCount() {
 //能处理一个回复里有一条分割线的情况和有连续两条分割线的情况
 //连续分割线的致命 Bug：假设文本里出现了两次分割线 ---\n---。你的旧代码里 JudgeTheType(segments[i+1]) 会把第二个分割线误判为 other（因为它不以 liaoyi 开头），导致真正的分割线被吞掉。新代码在 JudgeTheType 里加了 if (texts === sep) return 'separator'，彻底免疫了这个 Bug。
 /** 解析长文本并渲染编辑器和目录 */
-function buildEditorAndTOC(text) {
+function buildEditorAndTOC(text,UserName,AiName) {
   const sep = '-------------------';
   const segments = text.split(new RegExp('(' + sep.replace(/-/g, '\\-') + ')', 'g'));
 
@@ -37,8 +47,10 @@ function buildEditorAndTOC(text) {
     if (texts === sep) return { type: 'separator', label: '' };
     const trimmed = texts.trim();
     let type = 'other', label = '📄 其他';
-    if (trimmed.startsWith('liaoyi')) { type = 'user'; label = '👤'; }
-    else if (trimmed.startsWith('ailinyi')) { type = 'ai'; label = '🤖'; }
+    console.log(UserName+':'+AiName)
+    console.log(trimmed)
+    if (trimmed.startsWith(UserName)) { type = 'user'; label = '👤'; }
+    else if (trimmed.startsWith(AiName)) { type = 'ai'; label = '🤖'; }
     return { type, label };
   }
 
@@ -86,8 +98,8 @@ function buildEditorAndTOC(text) {
       .replace(/\n/g, '<br>');
 
     const id = `block-${blockIndex++}`;
-    let preview = safeContent.substring(0, 40);
-    if (safeContent.length > 40) preview += '...';
+    let preview = safeContent.substring(0, 60);
+    if (safeContent.length > 60) preview += '...';
 
     editorHTML += `<div id="${id}" class="msg ${currentInfo.type}">${safeContent}</div>`;
     tocHTML += `<li><a data-target="${id}" class="${currentInfo.type}">${currentInfo.label}：${preview}</a></li>`;
@@ -106,9 +118,15 @@ function buildEditorAndTOC(text) {
 // ==========================================
 
 // 4.1 初始化
-chrome.storage.local.get("editorText", (data) => {
+chrome.storage.local.get("editorText",async (data) => {
+    const userInfo = await initUserInfo();
+    UserName = userInfo.UserName;
+    AiName = userInfo.AiName;
+    
+    // 后续逻辑
+    console.log(`用户：${UserName}，AI：${AiName}`);
     if (data.editorText) {
-        buildEditorAndTOC(data.editorText);
+        buildEditorAndTOC(data.editorText,UserName,AiName);
         chrome.storage.local.remove("editorText");
     } else {
         updateCharCount();

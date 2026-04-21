@@ -1,32 +1,107 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
+
 <head>
-  <meta charset="UTF-8">
-  <style>
-    body {
-      width: 220px;
-      padding: 15px;
-      font-family: 'Microsoft YaHei', sans-serif;
-      text-align: center;
-    }
-    button {
-      width: 100%;
-      padding: 12px;
-      background-color: #0078d4;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      font-size: 15px;
-      cursor: pointer;
-      font-weight: bold;
-    }
-    button:hover { background-color: #005a9e; }
-    p { font-size: 12px; color: #666; margin-top: 12px; line-height: 1.4; }
-  </style>
+    <meta charset="UTF-8">
+    <style>
+        body {
+            width: 220px;
+            font-family: 'Microsoft YaHei', sans-serif;
+            text-align: center;
+            /* 可选，用于内联元素，但块级居中靠 flex */
+            display: flex;
+            /* 修正：不是 flexbox */
+            flex-direction: column;
+            justify-content: center;
+            /* 垂直居中 */
+            align-items: center;
+            /* 水平居中（重要！） */
+        }
+
+        .extractContainer {
+            display: flex;
+            /* 修正：不是 inline-flexbox */
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            width: 180px;
+            /* 让容器占满 body 宽度，使内部居中生效 */
+        }
+
+        button {
+
+
+            background-color: #0078d4;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 15px;
+            cursor: pointer;
+            font-weight: bold;
+            width: auto;
+            /* 改为自适应宽度，或使用 max-width */
+            min-width: 150px;
+            /* 可选，保持最小宽度 */
+            padding: 12px 1px;
+            /* 左右内边距让按钮有合适大小 */
+        }
+
+        button:hover {
+            background-color: #005a9e;
+        }
+
+        p {
+            font-size: 12px;
+            color: #666;
+            margin-top: 12px;
+            line-height: 1.4;
+        }
+
+        /* 新增用户信息表单样式 */
+        .form-container {
+            display: none;
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #f5f5f5;
+            border-radius: 6px;
+        }
+
+        .form-container input {
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .form-container button {
+            width: 100%;
+            padding: 10px;
+            margin-top: 10px;
+            background-color: #28a745;
+        }
+
+        .form-container button:hover {
+            background-color: #218838;
+        }
+    </style>
 </head>
+
 <body>
-  <button id="extractBtn">提取对话并编辑</button>
-  <p>点击后将自动抓取当前页面的AI对话，若抓取失败，请先在网页上用鼠标选中文字。</p>
-  <script src="popup.js"></script>
+    <div class="extractContainer" id="extractContainer">
+        <button id="extractBtn">提取对话并编辑</button>
+        <p>点击后将自动抓取当前页面的AI对话，若抓取失败，请先在网页上用鼠标选中文字。</p>
+    </div>
+
+    <!-- 新增表单区域 -->
+
+    <div class="form-container" id="configForm">
+        <p>此处可以自定义您和AI在对话中这名称</p>
+        <input type="text" id="userNameInput" placeholder="请输入用户名" autofocus>
+        <input type="text" id="aiNameInput" placeholder="请输入AI名称">
+        <button id="saveConfigBtn">保存配置</button>
+    </div>
+    <script src="popup.js"></script>
 </body>
+
 </html>
