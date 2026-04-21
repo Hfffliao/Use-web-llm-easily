@@ -37,8 +37,8 @@ function buildEditorAndTOC(text) {
     if (texts === sep) return { type: 'separator', label: '' };
     const trimmed = texts.trim();
     let type = 'other', label = '📄 其他';
-    if (trimmed.startsWith('liaoyi')) { type = 'user'; label = '👤 用户'; }
-    else if (trimmed.startsWith('ailinyi')) { type = 'ai'; label = '🤖 AI'; }
+    if (trimmed.startsWith('liaoyi')) { type = 'user'; label = '👤'; }
+    else if (trimmed.startsWith('ailinyi')) { type = 'ai'; label = '🤖'; }
     return { type, label };
   }
 
