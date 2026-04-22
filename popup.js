@@ -1,74 +1,21 @@
 import logger from './logger.js';
-let UserName, AiName;
 
-// 封装获取用户信息的函数
-async function initUserInfo() {
-    const user = await chrome.storage.local.get("UserName");
-    const ai = await chrome.storage.local.get("AiName");
-    return {
-        UserName: user.UserName || '用户',
-        AiName: ai.AiName || '助手'
-    };
-}
 document.addEventListener('DOMContentLoaded', async () => {
-    // 初始化用户信息
-    const userInfo = await initUserInfo();
-    UserName = userInfo.UserName;
-    AiName = userInfo.AiName;
-    console.log(`用户：${UserName}，AI：${AiName}`);
 
-    document.getElementById('extractBtn').addEventListener('click', async () => {
-        console.log("点击按钮")
-        try {
-            console.log("popup加载，检查配置");
+document.getElementById('extractBtn').addEventListener('click', async () => {
+    logger.info("点击按钮")
+    try {
+      extractMsg();
+    } catch (error) {
+        logger.error("配置检查出错:", error);
+        alert("配置检查失败，请重试");
+    }
 
+});
+// 新增：处理配置表单提交
+// document.getElementById('saveConfigBtn').addEventListener('click', async () => {
 
-            // 检查值是否存在
-            if (!UserName || !AiName) {
-                console.log("未找到配置，显示表单");
-                // 显示表单
-                document.getElementById('configForm').style.display = 'block';
-                document.getElementById('extractContainer').style.display = 'none';
-                document.getElementById('userNameInput').focus();
-
-            } else {
-                console.log("已获取到用户名和AI名称");
-                // 保持按钮可见
-                document.getElementById('extractBtn').style.display = 'block';
-                document.getElementById('configForm').style.display = 'none';
-                extractMsg();
-
-                // 显示表单
-            }
-        } catch (error) {
-            console.error("配置检查出错:", error);
-            alert("配置检查失败，请重试");
-        }
-
-    });
-    // 新增：处理表单提交
-    document.getElementById('saveConfigBtn').addEventListener('click', async () => {
-        const newUserName = document.getElementById('userNameInput').value;
-        const newAiName = document.getElementById('aiNameInput').value;
-
-        if (newUserName && newAiName) {
-            // 保存到存储
-            await chrome.storage.local.set({
-                "UserName": newUserName,
-                "AiName": newAiName
-            });
-            console.log("用户名和AI名称已保存");
-
-            // 隐藏表单并恢复按钮
-            document.getElementById('configForm').style.display = 'none';
-            document.getElementById('extractContainer').style.display = 'block';
-
-            // 继续执行原有逻辑
-            await processExtraction();
-        } else {
-            alert("用户名和AI名称不能为空");
-        }
-    });
+// });
 });
 async function extractMsg() {
     // 获取存储值
@@ -79,29 +26,44 @@ async function extractMsg() {
 
     // 3. 根据 URL 中包含的域名选择对应的提取函数
     let extractFunc = null;
-
+let newAiName='';
     if (currentUrl.includes('deepseek')) {
         console.log("当前界面deepseek")
-        extractFunc = extractSpecificChat_deepseek;      // 自定义的 DeepSeek 提取函数
+        extractFunc = extractSpecificChat_deepseek;
+        newAiName = 'deepseek';    // 自定义的 DeepSeek 提取函数
     } else if (currentUrl.includes('chatglm')) {
         console.log("当前界面chatglm")
-        extractFunc = extractSpecificChat_zhipu;       // 自定义的 ChatGLM 提取函数
+        extractFunc = extractSpecificChat_zhipu;
+        newAiName = 'chatglm';       // 自定义的 ChatGLM 提取函数
     } else if (currentUrl.includes('xiaomimimo')) {
         console.log("当前界面xiaomimimo")
-
-        extractFunc = extractSpecificChat_xiaomimimo;    // 自定义的小米米墨提取函数
+        extractFunc = extractSpecificChat_xiaomimimo;
+        newAiName = 'xiaomimimo';
     } else if (currentUrl.includes('qianwen')) {
         console.log("当前界面qianwen")
-
-        extractFunc = extractSpecificChat_qianwen;       // 自定义的千问提取函数
+        extractFunc = extractSpecificChat_qianwen;
+        newAiName = 'qianwen';        // 自定义的千问提取函数
     } else {
         throw new Error('不支持的聊天页面，请检查域名是否包含 deepseek/chatglm/xiaomimimo/qianwen');
     }
+    //将模型名保存到配置
+    const newUserName = 'User';
+    if (newUserName && newAiName) {
+        // 保存到存储
+        await chrome.storage.local.set({
+            "UserName": newUserName,
+            "AiName": newAiName
+        });
 
+        console.log("用户名和AI名称已保存");
+
+    } else {
+        alert("用户名和AI名称不能为空");
+    }
     const results = await chrome.scripting.executeScript({
         target: { tabId: tab.id },
         func: extractFunc,
-        args: [UserName, AiName, true]   // ✅ 关键：将用户名和 AI 名作为参数传入
+        args: [newUserName, newAiName, true]   // ✅ 关键：将用户名和 AI 名作为参数传入
     });
 
     const extractedText = results[0].result;
