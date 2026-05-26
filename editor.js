@@ -87,12 +87,8 @@ function buildEditorAndTOC(text,UserName,AiName) {
         break; // 下下段不是 other，停止吞并
       }
     }
-
+//为了防止html在编辑框内渲染导致无法编辑
     const safeContent = currentRaw
-    //   .replace(/</g, '<')
-    //   .replace(/>/g, '>')
-    //   .replace(/\n/g, '<br>')
-    //     .replace(/&/g, '&amp;');
           .replace(/&/g, '&amp;')
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;')

@@ -4,8 +4,9 @@
 <head>
     <meta charset="UTF-8">
     <style>
+ 
         body {
-            width: 220px;
+            width: 150px;
             font-family: 'Microsoft YaHei', sans-serif;
             text-align: center;
             /* 可选，用于内联元素，但块级居中靠 flex */
@@ -16,6 +17,8 @@
             /* 垂直居中 */
             align-items: center;
             /* 水平居中（重要！） */
+            background-color: #ffffff;
+          
         }
 
         .extractContainer {
@@ -24,7 +27,8 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            width: 180px;
+            width: 130px;
+
             /* 让容器占满 body 宽度，使内部居中生效 */
         }
 
@@ -40,7 +44,7 @@
             font-weight: bold;
             width: auto;
             /* 改为自适应宽度，或使用 max-width */
-            min-width: 150px;
+            min-width: 130px;
             /* 可选，保持最小宽度 */
             padding: 12px 1px;
             /* 左右内边距让按钮有合适大小 */
@@ -91,13 +95,13 @@
     <div class="extractContainer" id="extractContainer">
         <button id="extractBtn">提取对话并编辑</button>
         <p>点击后将自动抓取当前页面的AI对话，若抓取失败，请先在网页上用鼠标选中文字。</p>
-        <p>设置</p>
+        <!-- <p>设置</p> -->
     </div>
 
     <!-- 新增表单区域 -->
 
     <div class="form-container" id="configForm">
-       
+
     </div>
     <script type="module" src="popup.js"></script>
 </body>
