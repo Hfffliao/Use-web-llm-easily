@@ -17,7 +17,7 @@
 #### 浏览器：
 目前只适配edge
 #### 网页：
-deepseek(国内版) chatglm(智谱) xiaomimimo qianwen(千问国内版) 
+[deepseek(国内版)](https://chat.deepseek.com/) [chatglm(智谱)](https://chatglm.cn/) [xiaomimimo](https://aistudio.xiaomimimo.com/) [qianwen(千问国内版)](https://www.qianwen.com/chat/) [豆包网页版](https://www.doubao.com/)
 ## 快速开始
 ### 方式一：直接在edge插件商城搜索“便捷使用网页大模型”或“Use web llm easily”
 目前插件还在微软商店审核，可以直接下载源码
@@ -35,6 +35,7 @@ deepseek(国内版) chatglm(智谱) xiaomimimo qianwen(千问国内版)
 1.编辑框里的对话不完整
 解决：可以滑动到对话页面顶部，让之前的页面加载出来，然后重新点击按钮提取
 2.deepseek报过插件导致页面崩溃，刷新浏览器界面即可（频率极低）
+3.豆包网页因为网页会卸载当前隐藏的页面，所以需要边滑动边提取，所以较慢，请耐心等待并不要重复点击（ **重复点击会导致插件重复提取，此时刷新界面就能恢复正常**）
 ## 反馈
 如果您有建议或者想贡献代码，欢迎提交issue交流
 
