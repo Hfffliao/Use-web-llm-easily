@@ -8,7 +8,7 @@ const LogLevel = {
 };
 
 // 默认等级（可根据环境或存储动态设置）
-let currentLevel = LogLevel.DEBUG;  // 开发时设为 DEBUG，发布前改为 INFO 或 WARN
+let currentLevel = LogLevel.INFO;  // 开发时设为 DEBUG，发布前改为 INFO 或 WARN
 
 const logger = {
   debug(...args) {

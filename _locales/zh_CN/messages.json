@@ -1,0 +1,11 @@
+
+{
+  "extensionName": {
+    "message": "AI对话提取编辑器",
+    "description": "扩展名称"
+  },
+  "extensionDescription": {
+    "message": "一键提取网页大模型对话到全屏文本框，方便修改、整理和复制。",
+    "description": "扩展简短说明"
+  }
+}

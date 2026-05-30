@@ -63,7 +63,7 @@
       box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
       background: white;
       overflow-y: auto;
-      white-space: pre-wrap;
+      white-space: normal;
       word-wrap: break-word;
     }
     #editor:focus { border-color: #0078d4; }
@@ -110,7 +110,7 @@
 <body>
   <div class="header">
     <h2>提取的对话内容</h2>
-    <p style="color: red;">注意：此插件靠一行‘-’（19个）和用户名User,AI名来标记对话，由插件自动生成，您修改的时候需要确保每两段话由一行‘-’分割，且每段话开头有用户或AI名</p>
+    <!-- <p style="color: red;">注意：此插件靠一行‘-’（19个）和用户名User,AI名来标记对话，由插件自动生成，您需要点击复制全部文本来自动生成它</p> -->
     <div class="actions">
       <!-- 新增：右上角字符数量 -->
       <span id="charCount">字符数：0</span>

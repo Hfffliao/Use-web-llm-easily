@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>用法一览</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 24px;
+      font-family: "Microsoft YaHei", sans-serif;
+      background: #f3f3f3;
+      color: #333;
+      line-height: 1.7;
+    }
+
+    .container {
+      max-width: 760px;
+      margin: 0 auto;
+      background: #fff;
+      padding: 28px 32px;
+      border-radius: 10px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    }
+
+    h1 {
+      margin-top: 0;
+      font-size: 24px;
+      color: #0078d4;
+    }
+
+    h2 {
+      margin-top: 28px;
+      font-size: 18px;
+      border-left: 4px solid #0078d4;
+      padding-left: 10px;
+    }
+
+    ul {
+      padding-left: 22px;
+    }
+
+    li {
+      margin-bottom: 8px;
+    }
+
+    code {
+      background: #f1f1f1;
+      padding: 2px 5px;
+      border-radius: 4px;
+    }
+
+    .note {
+      background: #fff4ce;
+      border-left: 4px solid #ffb900;
+      padding: 10px 14px;
+      margin-top: 16px;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>用法一览</h1>
+
+    <h2>一、基本使用</h2>
+    <ul>
+      <li>打开支持的 AI 对话网页。</li>
+      <li>点击插件图标。</li>
+      <li>点击 <code>提取对话并编辑</code>。</li>
+      <li>插件会自动提取当前页面的对话，并打开编辑页面。</li>
+      <li>在编辑页面中可以直接修改内容。</li>
+      <li>修改完成后点击 <code>复制全部文本</code>。</li>
+      <li>在AI 对话网页新建会话并将复制的文本粘贴到AI 对话网页的提问框继续提问。</li>
+    </ul>
+
+    <h2>二、编辑区功能</h2>
+    <ul>
+      <li>左侧是对话编辑区。</li>
+      <li>右侧是对话目录。</li>
+      <li>点击目录项可以跳转到对应对话。</li>
+      <li>双击编辑区中的某条对话，右侧对应目录会高亮。</li>
+      <li>右键目录项或右键某条对话，可以添加或删除单次对话。</li>
+    </ul>
+
+    <h2>三、复制格式说明</h2>
+    <ul>
+      <li>复制后的文本会自动加上用户名、AI 名称和分隔线。</li>
+      <li>分隔线格式为 <code>-------------------</code>。</li>
+      <li>请不要随意删除分隔线，否则下次解析目录可能不准确。</li>
+    </ul>
+
+    <h2>四、提取失败怎么办</h2>
+    <ul>
+      <li>如果自动提取失败，请先在网页上用鼠标选中对话文本。</li>
+      <li>然后再次点击 <code>提取对话并编辑</code>。</li>
+      <li>如果网页结构变化，可能需要更新对应网站的提取规则。</li>
+    </ul>
+
+    <div class="note">
+      注意：
+      1.插件依赖用户名、AI 名称和分隔线来识别每一轮对话。
+        2.如果出现提取的对话不全，请翻到与将网页版ai的对话顶部并重新提取。
+        3.豆包的网页机制比较特殊，提取的时候较慢，请单次点击后耐心等待，不要点击多次，否则会出现工作不正常，刷新界面即可
+        4.目前支持：chatglm.cn，aistudio.xiaomimimo.com，chat.deepseek.com，www.doubao.com
+    </div>
+  </div>
+</body>
+</html>

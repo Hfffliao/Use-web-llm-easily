@@ -34,14 +34,66 @@ style.innerHTML = `
   .msg-content.user-label { background-color: #e8f4fd; }
   .msg-content.ai-label  { background-color: #edf7ed; }
   .msg-content.other-label { background-color: #f5f5f5; }
-`;
+/* 以下是给添加目录栏的右键功能用的 */
+.toc-context-menu {
+ display: none;
+ position: fixed;
+ z-index: 9999;
+ min-width: 180px;
+ background: white;
+ border: 1px solid #ddd;
+ border-radius: 6px;
+ box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+ padding: 6px 0;
+ font-size: 14px;
+ }
+
+ .toc-context-menu button {
+ display: block;
+ width: 100%;
+ padding: 8px 14px;
+ border: none;
+ background: white;
+ text-align: left;
+ cursor: pointer;
+ color: #333;
+ }
+
+ .toc-context-menu button:hover {
+ background: #eef4ff;
+ color: #0078d4;
+ }
+
+ .toc-context-menu button.danger:hover {
+ background: #fff1f0;
+ color: #d13438;
+ }
+ /* 以下是给编辑区的右键功能用的 */
+.message-wrapper {
+ cursor: default;
+}
+
+.message-wrapper:hover {
+ background: rgba(0, 120, 212, 0.04);
+ border-radius: 6px;
+}
+
+.toc a.active {
+ background: #e8f2ff;
+ color: #0078d4;
+ font-weight: bold;
+ box-shadow: inset 0 0 0 1px rgba(0, 120, 212, 0.15);
+}
+
+
+  `;
 document.head.appendChild(style);
 
 // ========== 新增：单次对话类 ==========
 class ChatMessage {
     constructor(role, content, id) {
         this.role = role; // 'user', 'ai', 'other'
-        this.content = content; // 纯文本内容//目前留空
+        this.content = content; // 纯文本内容//目前留空，不要使用
         this.id = id; // DOM 对应的 id
     }
 }
@@ -49,6 +101,7 @@ class ChatMessage {
 let chatMessages = []; // 保存所有的对话对象
 
 let UserName, AiName;//定义用户信息
+let nextBlockIndex = 0; // 用于创建新的 block id
 
 // ==========================================
 // 1. DOM 元素获取
@@ -90,7 +143,7 @@ function buildEditorAndTOC(text, UserName, AiName) {
 
     let editorHTML = '';
     let tocHTML = '';
-    let blockIndex = 0;
+    nextBlockIndex = 0;
     chatMessages = []; // 重新构建时清空对象数组
 
     function JudgeTheType(texts) {
@@ -98,8 +151,6 @@ function buildEditorAndTOC(text, UserName, AiName) {
         if (texts === sep) return { type: 'separator', label: '' };
         const trimmed = texts.trim();
         let type = 'other', label = '📄 其他';
-        console.log(UserName + ':' + AiName)
-        console.log(trimmed)
         if (trimmed.startsWith(UserName)) { type = 'user'; label = '👤'; }
         else if (trimmed.startsWith(AiName)) { type = 'ai'; label = '🤖'; }
         return { type, label };
@@ -146,7 +197,7 @@ function buildEditorAndTOC(text, UserName, AiName) {
             else if (pureContent.startsWith(`${AiName}：`)) pureContent = pureContent.substring(`${AiName}：`.length);
         }
 
-        const msgId = `block-${blockIndex++}`;
+        const msgId = `block-${nextBlockIndex++}`;
         const role = currentInfo.type;
 
         //创建单次对话对象并存入数组
@@ -198,6 +249,209 @@ function buildEditorAndTOC(text, UserName, AiName) {
 
 
 
+// ==========================================
+// 3.5 目录右键菜单：增删单次对话
+// ==========================================
+
+function escapeHTML(text) {
+    return String(text)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
+function getRoleInfo(role) {
+    if (role === 'user') {
+        return {
+            role,
+            label: `${UserName}：`,
+            labelClass: 'user-label',
+            tocClass: 'user',
+            emoji: '👤'
+        };
+    }
+
+    if (role === 'ai') {
+        return {
+            role,
+            label: `${AiName}：`,
+            labelClass: 'ai-label',
+            tocClass: 'ai',
+            emoji: '🤖'
+        };
+    }
+
+    return {
+        role: 'other',
+        label: '📄 其他：',
+        labelClass: 'other-label',
+        tocClass: 'other',
+        emoji: '📄'
+    };
+}
+
+function createMessageDOM(msg) {
+    const info = getRoleInfo(msg.role);
+    const wrapper = document.createElement('div');
+    wrapper.className = 'message-wrapper';
+    wrapper.id = msg.id;
+
+    const roleLabel = document.createElement('div');
+    roleLabel.className = `role-label ${info.labelClass}`;
+    roleLabel.innerText = info.label;
+
+    const content = document.createElement('div');
+    content.className = `msg-content ${info.labelClass}`;
+    content.id = `${msg.id}-content`;
+    content.innerHTML = escapeHTML(msg.content || '').replace(/\n/g, '<br>');
+
+    wrapper.appendChild(roleLabel);
+    wrapper.appendChild(content);
+
+    return wrapper;
+}
+
+
+function createTocDOM(msg) {
+  const info = getRoleInfo(msg.role);
+  const li = document.createElement('li');
+  const a = document.createElement('a');
+
+  a.dataset.target = msg.id;
+  a.className = info.tocClass;
+  a.innerText = `${info.emoji}：新对话`;
+
+  li.appendChild(a);
+  return li;
+}
+
+
+function getMessageIndexById(msgId) {
+    return chatMessages.findIndex(m => m.id === msgId);
+}
+
+function deleteMessageById(msgId) {
+    const index = getMessageIndexById(msgId);
+    if (index === -1) return;
+
+    // 1. 删除单次对话对象
+    chatMessages.splice(index, 1);
+
+    // 2. 删除编辑区 DOM
+    const messageEl = document.getElementById(msgId);
+    if (messageEl) messageEl.remove();
+
+    // 3. 删除目录 DOM
+    const tocLink = tocList.querySelector(`a[data-target="${msgId}"]`);
+    if (tocLink && tocLink.parentElement) {
+        tocLink.parentElement.remove();
+    }
+
+    updateCharCount();
+}
+
+function insertMessageAround(msgId, position) {
+    const index = getMessageIndexById(msgId);
+    if (index === -1) return;
+
+    // 默认新增一条 User 对话；如果你想默认 AI，把这里改成 'ai'
+    const newMsg = new ChatMessage('user', '', `block-${nextBlockIndex++}`);
+
+    // 1. 更新单次对话对象数组
+    const insertIndex = position === 'before' ? index : index + 1;
+    chatMessages.splice(insertIndex, 0, newMsg);
+
+    // 2. 更新编辑区 DOM
+    const targetMessageEl = document.getElementById(msgId);
+    const newMessageEl = createMessageDOM(newMsg);
+
+    if (targetMessageEl) {
+        if (position === 'before') {
+            editor.insertBefore(newMessageEl, targetMessageEl);
+        } else {
+            editor.insertBefore(newMessageEl, targetMessageEl.nextSibling);
+        }
+    }
+
+    // 3. 更新目录 DOM
+    const targetTocLink = tocList.querySelector(`a[data-target="${msgId}"]`);
+    const targetTocLi = targetTocLink ? targetTocLink.parentElement : null;
+    const newTocLi = createTocDOM(newMsg);
+
+    if (targetTocLi) {
+        if (position === 'before') {
+            tocList.insertBefore(newTocLi, targetTocLi);
+        } else {
+            tocList.insertBefore(newTocLi, targetTocLi.nextSibling);
+        }
+    }
+
+    updateCharCount();
+
+    // 新增后自动聚焦到新增对话内容区
+    const newContentEl = document.getElementById(`${newMsg.id}-content`);
+    if (newContentEl) {
+        newContentEl.focus();
+
+        const range = document.createRange();
+        range.selectNodeContents(newContentEl);
+        range.collapse(false);
+
+        const selection = window.getSelection();
+        selection.removeAllRanges();
+        selection.addRange(range);
+    }
+}
+
+//创建右键菜单dom
+const tocContextMenu = document.createElement('div');
+tocContextMenu.className = 'toc-context-menu';
+tocContextMenu.innerHTML = `
+ <button type="button" data-action="delete" class="danger">删除此个单次对话</button>
+ <button type="button" data-action="insert-before">在此对话前添加对话</button>
+ <button type="button" data-action="insert-after">在此对话后添加对话</button>
+`;
+document.body.appendChild(tocContextMenu);
+
+let currentContextTargetId  = null;
+
+function hideTocContextMenu() {
+    tocContextMenu.style.display = 'none';
+    currentContextTargetId  = null;
+}
+
+function showTocContextMenu(x, y, targetId) {
+    currentContextTargetId  = targetId;
+    tocContextMenu.style.left = `${x}px`;
+    tocContextMenu.style.top = `${y}px`;
+    tocContextMenu.style.display = 'block';
+}
+function scrollTocToMessage(msgId) {
+ const tocLink = tocList.querySelector(`a[data-target="${msgId}"]`);
+ if (!tocLink) return;
+
+ tocList.querySelectorAll('a.active').forEach(a => {
+  a.classList.remove('active');
+ });
+
+ tocLink.classList.add('active');
+
+ tocLink.scrollIntoView({
+  behavior: 'smooth',
+  block: 'center'
+ });
+}
+function getMessageWrapperFromEvent(e) {
+ const wrapper = e.target.closest('.message-wrapper');
+
+ if (!wrapper) return null;
+ if (!editor.contains(wrapper)) return null;
+ if (!wrapper.id) return null;
+
+ return wrapper;
+}
 
 // ==========================================
 // 4. 事件监听
@@ -210,7 +464,6 @@ chrome.storage.local.get("editorText", async (data) => {
     AiName = userInfo.AiName;
 
     // 后续逻辑
-    console.log(`用户：${UserName}，AI：${AiName}`);
     if (data.editorText) {
         buildEditorAndTOC(data.editorText, UserName, AiName);
         chrome.storage.local.remove("editorText");
@@ -221,33 +474,119 @@ chrome.storage.local.get("editorText", async (data) => {
 
 
 // 4.2 实时字数统计及目录预览更新
-editor.addEventListener('input', (e) => {
-    updateCharCount();
-    // 实时更新右侧目录的预览文字
-    const contentEl = e.target.closest('.msg-content');
-    if (contentEl) {
-        const msgId = contentEl.id.replace('-content', '');
-        const tocLink = tocList.querySelector(`a[data-target="${msgId}"]`);
-        if (tocLink) {
-            const currentText = contentEl.innerText;
-            let preview = currentText.substring(0, 60).replace(/\n/g, ' ');
-            if (currentText.length > 60) preview += '...';
+editor.addEventListener('input', () => {
+  updateCharCount();
 
-            const msg = chatMessages.find(m => m.id === msgId);
-            const labelEmoji = msg && msg.role === 'user' ? '👤' : (msg && msg.role === 'ai' ? '🤖' : '📄');
-            tocLink.innerText = `${labelEmoji}：${preview}`;
-        }
-    }
+  document.querySelectorAll('.msg-content').forEach(contentEl => {
+    const msgId = contentEl.id.replace('-content', '');
+    const tocLink = tocList.querySelector(`a[data-target="${msgId}"]`);
+    const msg = chatMessages.find(m => m.id === msgId);
+    if (!tocLink || !msg) return;
+
+    const currentText = contentEl.innerText;
+
+    let preview = currentText.substring(0, 60).replace(/\n/g, ' ');
+    if (currentText.length > 60) preview += '...';
+
+    const labelEmoji =
+      msg.role === 'user' ? '👤' :
+      msg.role === 'ai' ? '🤖' : '📄';
+
+    tocLink.innerText = `${labelEmoji}：${preview}`;
+  });
 });
 // 4.3 目录点击跳转
 tocList.addEventListener('click', (e) => {
-    const a = e.target.closest('a');
-    if (!a) return;
-    const targetElement = document.getElementById(a.getAttribute('data-target'));
-    if (targetElement) {
-        targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
+ const a = e.target.closest('a');
+ if (!a) return;
+
+ const targetId = a.getAttribute('data-target');
+ if (!targetId) return;
+
+ const targetElement = document.getElementById(targetId);
+ if (targetElement) {
+  targetElement.scrollIntoView({
+   behavior: 'smooth',
+   block: 'start'
+  });
+ }
+
+ scrollTocToMessage(targetId);
 });
+
+// 4.3.1 目录右键菜单
+tocList.addEventListener('contextmenu', (e) => {
+ const a = e.target.closest('a');
+ if (!a) return;
+
+ e.preventDefault();
+
+ const targetId = a.getAttribute('data-target');
+ if (!targetId) return;
+
+ scrollTocToMessage(targetId);
+ showTocContextMenu(e.clientX, e.clientY, targetId);
+});
+// 4.3.2 编辑区右键菜单：和目录右键共用同一套菜单功能
+editor.addEventListener('contextmenu', (e) => {
+ const wrapper = getMessageWrapperFromEvent(e);
+ if (!wrapper) return;
+
+ e.preventDefault();
+
+ const targetId = wrapper.id;
+
+ // 让右侧目录同步定位和高亮
+ scrollTocToMessage(targetId);
+
+ // 复用目录右键菜单
+ showTocContextMenu(e.clientX, e.clientY, targetId);
+});
+// 4.3.3 双击编辑区单次对话：右侧目录自动滚动到对应目录项
+editor.addEventListener('dblclick', (e) => {
+ const wrapper = getMessageWrapperFromEvent(e);
+ if (!wrapper) return;
+
+ const targetId = wrapper.id;
+
+ scrollTocToMessage(targetId);
+});
+
+// 点击菜单项
+tocContextMenu.addEventListener('click', (e) => {
+ const btn = e.target.closest('button');
+ if (!btn || !currentContextTargetId) return;
+
+ const targetId = currentContextTargetId;
+ const action = btn.dataset.action;
+
+ if (action === 'delete') {
+  deleteMessageById(targetId);
+ } else if (action === 'insert-before') {
+  insertMessageAround(targetId, 'before');
+ } else if (action === 'insert-after') {
+  insertMessageAround(targetId, 'after');
+ }
+
+ hideTocContextMenu();
+});
+// 点击页面其他地方关闭菜单
+document.addEventListener('click', (e) => {
+ if (!tocContextMenu.contains(e.target)) {
+ hideTocContextMenu();
+ }
+});
+
+// 滚动时关闭菜单，避免菜单悬浮位置错乱
+document.addEventListener('scroll', hideTocContextMenu, true);
+
+// 按 ESC 关闭菜单
+document.addEventListener('keydown', (e) => {
+ if (e.key === 'Escape') {
+ hideTocContextMenu();
+ }
+});
+
 
 // 4.4 强制回车只换行
 editor.addEventListener('keydown', (e) => {

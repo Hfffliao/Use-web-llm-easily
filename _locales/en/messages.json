@@ -1,0 +1,10 @@
+{
+  "extensionName": {
+    "message": "AI Conversation Extractor",
+    "description": "Extension name"
+  },
+  "extensionDescription": {
+    "message": "Extract AI chat conversations from webpages and open them in a full-page editor for editing, organizing, and copying.",
+    "description": "Short extension description"
+  }
+}
